@@ -35,7 +35,7 @@ export default function ManageContentComp() {
   }, []);
 
   const getData = async () => {
-    const response = await fetch("http://localhost:8000/api/assessment/");
+    const response = await fetch("https://monitoring-analysis-z6gl.vercel.app/api/assessment/");
     if (response.ok) {
       const json = await response.json();
       setData(json);
@@ -48,7 +48,7 @@ export default function ManageContentComp() {
   };
 
   const handleEditSave = async () => {
-    await fetch(`http://localhost:8000/api/assessment/${editItem._id}`, {
+    await fetch(`https://monitoring-analysis-z6gl.vercel.app/api/assessment/${editItem._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editItem),
@@ -59,7 +59,7 @@ export default function ManageContentComp() {
   };
 
   const handleDeleteConfirm = async () => {
-    await fetch(`http://localhost:8000/api/assessment/${deleteId}`, {
+    await fetch(`https://monitoring-analysis-z6gl.vercel.app/api/assessment/${deleteId}`, {
       method: "DELETE",
     });
 

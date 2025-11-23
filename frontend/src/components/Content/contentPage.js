@@ -88,7 +88,7 @@ export default function AssessmentForm() {
   e.preventDefault();
 
   try {
-    const response = await fetch("http://localhost:8000/api/assessment/", {
+    const response = await fetch("https://monitoring-analysis-z6gl.vercel.app/api/assessment/", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
