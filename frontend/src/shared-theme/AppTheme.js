@@ -7,7 +7,8 @@ import { dataDisplayCustomizations } from './customizations/dataDisplay';
 import { feedbackCustomizations } from './customizations/feedback';
 import { navigationCustomizations } from './customizations/navigation';
 import { surfacesCustomizations } from './customizations/surfaces';
-import { colorSchemes, typography, shadows, shape } from './themePrimitives';
+
+import { typography, shadows, shape } from './themePrimitives';
 
 function AppTheme(props) {
   const { children, disableCustomTheme, themeComponents } = props;
@@ -15,30 +16,16 @@ function AppTheme(props) {
   const theme = React.useMemo(() => {
     if (disableCustomTheme) return {};
 
-    // Force light mode palette override
-    const updatedColorSchemes = {
-      ...colorSchemes,
-      light: {
-        ...colorSchemes.light,
-        palette: {
-          ...colorSchemes.light.palette,
-          mode: 'light',           // ensure light mode
-          primary: { main: '#4caf50' }, // green primary color
-          background: {
-            ...colorSchemes.light.palette.background,
-            default: '#f4f6f8',
-            paper: '#fff',
-          },
+    // FINAL: Only light theme
+    return createTheme({
+      palette: {
+        mode: 'light',
+        primary: { main: '#4caf50' },
+        background: {
+          default: '#f4f6f8',
+          paper: '#ffffff',
         },
       },
-    };
-
-    return createTheme({
-      cssVariables: {
-        colorSchemeSelector: 'data-mui-color-scheme',
-        cssVarPrefix: 'template',
-      },
-      colorSchemes: updatedColorSchemes,
       typography,
       shadows,
       shape,
@@ -54,11 +41,11 @@ function AppTheme(props) {
   }, [disableCustomTheme, themeComponents]);
 
   if (disableCustomTheme) {
-    return <React.Fragment>{children}</React.Fragment>;
+    return <>{children}</>;
   }
 
   return (
-    <ThemeProvider theme={theme} disableTransitionOnChange>
+    <ThemeProvider theme={theme}>
       {children}
     </ThemeProvider>
   );
