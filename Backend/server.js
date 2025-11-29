@@ -29,6 +29,7 @@ mongoose.connect("mongodb+srv://ferozsameer07_db_user:5H2Hs8XzpsLCkvAG@sindhgovt
 // Routes
 const assessmentRoutes = require('./Controllers/Content');
 app.use('/api/assessment', assessmentRoutes);
+app.use('/api/auth', require('./Controllers/authController'));
 
 // Start server
 app.listen(port, () => {

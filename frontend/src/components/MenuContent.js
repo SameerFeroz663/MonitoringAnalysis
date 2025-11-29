@@ -13,12 +13,19 @@ import InfoRoundedIcon from '@mui/icons-material/InfoRounded';
 import HelpRoundedIcon from '@mui/icons-material/HelpRounded';
 import DescriptionRoundedIcon from '@mui/icons-material/DescriptionRounded';
 
-
 const mainListItems = [
   { text: 'Home', icon: <HomeRoundedIcon />, path: '/' },
   { text: 'Upload Content', icon: <AnalyticsRoundedIcon  />, path: '/upload-content' },
   { text: 'Manage Content', icon: <DescriptionRoundedIcon  />, path: '/manage-content' },
 ];
+
+// role check hehe
+const user = localStorage.getItem('role');
+console.log(user);
+if(user !== 'admin'){
+  mainListItems.splice(1,1); // remove manage content for non-admins
+}
+
 
 const secondaryListItems = [
   { text: 'Settings', icon: <SettingsRoundedIcon />, path: '/settings' },

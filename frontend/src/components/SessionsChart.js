@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { useTheme } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import Card from '@mui/material/Card';
@@ -6,6 +7,7 @@ import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import { LineChart } from '@mui/x-charts/LineChart';
+import axios from 'axios';
 
 function AreaGradient({ color, id }) {
   return (
@@ -23,36 +25,66 @@ AreaGradient.propTypes = {
   id: PropTypes.string.isRequired,
 };
 
-function getDaysInMonth(month, year) {
-  const date = new Date(year, month, 0);
-  const monthName = date.toLocaleDateString('en-US', {
-    month: 'short',
-  });
-  const daysInMonth = date.getDate();
-  const days = [];
-  let i = 1;
-  while (days.length < daysInMonth) {
-    days.push(`${monthName} ${i}`);
-    i += 1;
-  }
-  return days;
-}
-
-export default function SessionsChart() {
+export default function ChildrenCuredChart() {
   const theme = useTheme();
-  const data = getDaysInMonth(4, 2024);
+  const [chartData, setChartData] = React.useState([]);
+  const [totalCured, setTotalCured] = React.useState(0);
 
-  const colorPalette = [
-    theme.palette.primary.light,
-    theme.palette.primary.main,
-    theme.palette.primary.dark,
-  ];
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/assessment/');
+        const assessments = response.data;
+
+        // Prepare data for chart (assuming 30 days, using monthName and reportDate)
+        const hospitalsData = [];
+        const clinicsData = [];
+        const homeVisitsData = [];
+
+        let total = 0;
+
+        assessments.forEach((item) => {
+          // Sum male + female for age 06-23 and 24-59 months
+          const male06_23 = item.data.age_06_to_23_months.male;
+          const female06_23 = item.data.age_06_to_23_months.female;
+          const male24_59 = item.data.age_24_to_59_months.male;
+          const female24_59 = item.data.age_24_to_59_months.female;
+
+          // Calculate total cured per day/source
+          const hospitals = male06_23.samWithoutComplication + female06_23.samWithoutComplication +
+                            male24_59.samWithoutComplication + female24_59.samWithoutComplication;
+
+          const clinics = male06_23.mam + female06_23.mam + male24_59.mam + female24_59.mam;
+
+          const homeVisits = male06_23.normal + female06_23.normal + male24_59.normal + female24_59.normal;
+
+          hospitalsData.push(hospitals);
+          clinicsData.push(clinics);
+          homeVisitsData.push(homeVisits);
+
+          total += hospitals + clinics + homeVisits;
+        });
+
+        setChartData({ hospitalsData, clinicsData, homeVisitsData });
+        setTotalCured(total);
+      } catch (error) {
+        console.error('Error fetching assessment data:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Generate x-axis labels using report dates (if chartData exists)
+  const xLabels = chartData.hospitalsData
+    ? chartData.hospitalsData.map((_, i) => `Day ${i + 1}`)
+    : [];
 
   return (
     <Card variant="outlined" sx={{ width: '100%' }}>
       <CardContent>
         <Typography component="h2" variant="subtitle2" gutterBottom>
-          Sessions
+          Children Cured
         </Typography>
         <Stack sx={{ justifyContent: 'space-between' }}>
           <Stack
@@ -64,20 +96,24 @@ export default function SessionsChart() {
             }}
           >
             <Typography variant="h4" component="p">
-              13,277
+              {totalCured}
             </Typography>
-            <Chip size="small" color="success" label="+35%" />
+            <Chip size="small" color="success" label="+12%" />
           </Stack>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Sessions per day for the last 30 days
+            Children cured per day for the last 30 days
           </Typography>
         </Stack>
         <LineChart
-          colors={colorPalette}
+          colors={[
+            theme.palette.primary.light,
+            theme.palette.primary.main,
+            theme.palette.primary.dark,
+          ]}
           xAxis={[
             {
               scaleType: 'point',
-              data,
+              data: xLabels,
               tickInterval: (index, i) => (i + 1) % 5 === 0,
               height: 24,
             },
@@ -85,67 +121,49 @@ export default function SessionsChart() {
           yAxis={[{ width: 50 }]}
           series={[
             {
-              id: 'direct',
-              label: 'Direct',
+              id: 'hospitals',
+              label: 'Hospitals',
               showMark: false,
               curve: 'linear',
               stack: 'total',
               area: true,
               stackOrder: 'ascending',
-              data: [
-                300, 900, 600, 1200, 1500, 1800, 2400, 2100, 2700, 3000, 1800, 3300,
-                3600, 3900, 4200, 4500, 3900, 4800, 5100, 5400, 4800, 5700, 6000,
-                6300, 6600, 6900, 7200, 7500, 7800, 8100,
-              ],
+              data: chartData.hospitalsData || [],
             },
             {
-              id: 'referral',
-              label: 'Referral',
+              id: 'clinics',
+              label: 'Clinics',
               showMark: false,
               curve: 'linear',
               stack: 'total',
               area: true,
               stackOrder: 'ascending',
-              data: [
-                500, 900, 700, 1400, 1100, 1700, 2300, 2000, 2600, 2900, 2300, 3200,
-                3500, 3800, 4100, 4400, 2900, 4700, 5000, 5300, 5600, 5900, 6200,
-                6500, 5600, 6800, 7100, 7400, 7700, 8000,
-              ],
+              data: chartData.clinicsData || [],
             },
             {
-              id: 'organic',
-              label: 'Organic',
+              id: 'homeVisits',
+              label: 'Home Visits',
               showMark: false,
               curve: 'linear',
               stack: 'total',
               stackOrder: 'ascending',
-              data: [
-                1000, 1500, 1200, 1700, 1300, 2000, 2400, 2200, 2600, 2800, 2500,
-                3000, 3400, 3700, 3200, 3900, 4100, 3500, 4300, 4500, 4000, 4700,
-                5000, 5200, 4800, 5400, 5600, 5900, 6100, 6300,
-              ],
               area: true,
+              data: chartData.homeVisitsData || [],
             },
           ]}
           height={250}
           margin={{ left: 0, right: 20, top: 20, bottom: 0 }}
           grid={{ horizontal: true }}
           sx={{
-            '& .MuiAreaElement-series-organic': {
-              fill: "url('#organic')",
-            },
-            '& .MuiAreaElement-series-referral': {
-              fill: "url('#referral')",
-            },
-            '& .MuiAreaElement-series-direct': {
-              fill: "url('#direct')",
-            },
+            '& .MuiAreaElement-series-hospitals': { fill: "url('#hospitals')" },
+            '& .MuiAreaElement-series-clinics': { fill: "url('#clinics')" },
+            '& .MuiAreaElement-series-homeVisits': { fill: "url('#homeVisits')" },
           }}
           hideLegend
         >
-          <AreaGradient color={theme.palette.primary.dark} id="organic" />
-          <AreaGradient color={theme.palette.primary.main} id="referral" />
-          <AreaGradient color={theme.palette.primary.light} id="direct" />
+          <AreaGradient color={theme.palette.primary.light} id="hospitals" />
+          <AreaGradient color={theme.palette.primary.main} id="clinics" />
+          <AreaGradient color={theme.palette.primary.dark} id="homeVisits" />
         </LineChart>
       </CardContent>
     </Card>

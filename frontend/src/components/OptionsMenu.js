@@ -10,20 +10,30 @@ import ListItemIcon, { listItemIconClasses } from '@mui/material/ListItemIcon';
 import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import MenuButton from './MenuButton';
+import { useNavigate } from 'react-router-dom';
 
 const MenuItem = styled(MuiMenuItem)({
   margin: '2px 0',
 });
 
+
 export default function OptionsMenu() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
-  const handleClick = (event) => {
-    setAnchorEl(event.currentTarget);
+  const navigate = useNavigate();
+  const user = localStorage.getItem('role');
+  const isAdmin = user && user.toLowerCase() === 'admin';
+  
+  const handleClick = (event) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("user");
+    navigate("/login");
   };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
+
   return (
     <React.Fragment>
       <MenuButton
@@ -33,6 +43,7 @@ export default function OptionsMenu() {
       >
         <MoreVertRoundedIcon />
       </MenuButton>
+
       <Menu
         anchorEl={anchorEl}
         id="menu"
@@ -42,33 +53,26 @@ export default function OptionsMenu() {
         transformOrigin={{ horizontal: 'right', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         sx={{
-          [`& .${listClasses.root}`]: {
-            padding: '4px',
-          },
-          [`& .${paperClasses.root}`]: {
-            padding: 0,
-          },
-          [`& .${dividerClasses.root}`]: {
-            margin: '4px -4px',
-          },
+          [`& .${listClasses.root}`]: { padding: '4px' },
+          [`& .${paperClasses.root}`]: { padding: 0 },
+          [`& .${dividerClasses.root}`]: { margin: '4px -4px' },
         }}
       >
-        <MenuItem onClick={handleClose}>Profile</MenuItem>
         <MenuItem onClick={handleClose}>My account</MenuItem>
-        <Divider />
-        <MenuItem onClick={handleClose}>Add another account</MenuItem>
-        <MenuItem onClick={handleClose}>Settings</MenuItem>
+        {isAdmin && (
+          <>
+            <Divider />
+            <MenuItem onClick={()=>navigate('/create-user')}>Manage user accounts</MenuItem>
+          </>
+          )
+        }
         <Divider />
         <MenuItem
-          onClick={handleClose}
           sx={{
-            [`& .${listItemIconClasses.root}`]: {
-              ml: 'auto',
-              minWidth: 0,
-            },
+            [`& .${listItemIconClasses.root}`]: { ml: 'auto', minWidth: 0 },
           }}
         >
-          <ListItemText>Logout</ListItemText>
+          <ListItemText onClick={logout}>Logout</ListItemText>
           <ListItemIcon>
             <LogoutRoundedIcon fontSize="small" />
           </ListItemIcon>

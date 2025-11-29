@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import MenuContent from './MenuContent';
 import CardAlert from './CardAlert';
 import OptionsMenu from './OptionsMenu';
+import axios from 'axios';
 
 const drawerWidth = 240;
 
@@ -24,6 +25,10 @@ const Drawer = styled(MuiDrawer)({
 });
 
 export default function SideMenu() {
+   const use1 = localStorage.getItem('user');
+    const user = use1 ? JSON.parse(use1) : null;
+      // console.log("User Info:", user.name);
+  
   return (
     <Drawer
       variant="permanent"
@@ -77,18 +82,24 @@ export default function SideMenu() {
           borderColor: 'divider',
         }}
       >
-        <Avatar
-          sizes="small"
-          alt="Riley Carter"
-          src="/static/images/avatar/7.jpg"
-          sx={{ width: 36, height: 36 }}
-        />
+ <Avatar 
+      sx={{ 
+        width: 40, 
+        height: 40, 
+        bgcolor: '#B0BEC5', // light gray background
+        fontSize: 18, 
+        fontWeight: 'semi-bold' 
+      }}
+    >
+      {user ? (user.name ? user.name.charAt(0).toUpperCase() : "G") : "G"}
+    </Avatar>
         <Box sx={{ mr: 'auto' }}>
           <Typography variant="body2" sx={{ fontWeight: 500, lineHeight: '16px' }}>
-            Riley Carter
+            {user ? (user.name.length > 20 ? user.name.slice(0, 20) + "..." : user.name) : "Guest User"}
+
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            riley@email.com
+            {user ? (user.email.length > 20 ? user.email.slice(0, 18) + "..." : user.email) : "Guest User"}
           </Typography>
         </Box>
         <OptionsMenu />

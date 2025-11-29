@@ -8,12 +8,10 @@ try {
 const entry = new Assessment(req.body);
 const saved = await entry.save();
 
-```
 res.status(201).json({  
   message: "📌 Assessment Saved Successfully",  
   data: saved  
 });  
-```
 
 } catch (err) {
 res.status(500).json({ error: err.message });
@@ -50,6 +48,17 @@ res.json({
 } catch (err) {
 res.status(500).json({ error: err.message });
 }
+});
+router.delete('/:id', async (req, res) => {
+  try {
+    const deleted = await Assessment.findByIdAndDelete(req.params.id);
+    if (!deleted) return res.status(404).json({ message: "❌ Assessment not found" });
+
+    res.json({ message: "🗑️ Assessment Deleted Successfully", data: deleted });
+  } catch (err) {
+    console.error("Delete Error:", err); // <-- add this
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

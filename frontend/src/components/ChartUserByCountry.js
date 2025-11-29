@@ -16,40 +16,7 @@ import {
   BrazilFlag,
   GlobeFlag,
 } from '../internals/components/CustomIcons';
-
-const data = [
-  { label: 'India', value: 50000 },
-  { label: 'USA', value: 35000 },
-  { label: 'Brazil', value: 10000 },
-  { label: 'Other', value: 5000 },
-];
-
-const countries = [
-  {
-    name: 'India',
-    value: 50,
-    flag: <IndiaFlag />,
-    color: 'hsl(220, 25%, 65%)',
-  },
-  {
-    name: 'USA',
-    value: 35,
-    flag: <UsaFlag />,
-    color: 'hsl(220, 25%, 45%)',
-  },
-  {
-    name: 'Brazil',
-    value: 10,
-    flag: <BrazilFlag />,
-    color: 'hsl(220, 25%, 30%)',
-  },
-  {
-    name: 'Other',
-    value: 5,
-    flag: <GlobeFlag />,
-    color: 'hsl(220, 25%, 20%)',
-  },
-];
+import axios from 'axios';
 
 const StyledText = styled('text', {
   shouldForwardProp: (prop) => prop !== 'variant',
@@ -64,25 +31,13 @@ const StyledText = styled('text', {
       },
       style: {
         fontSize: theme.typography.h5.fontSize,
-      },
-    },
-    {
-      props: ({ variant }) => variant !== 'primary',
-      style: {
-        fontSize: theme.typography.body2.fontSize,
-      },
-    },
-    {
-      props: {
-        variant: 'primary',
-      },
-      style: {
         fontWeight: theme.typography.h5.fontWeight,
       },
     },
     {
       props: ({ variant }) => variant !== 'primary',
       style: {
+        fontSize: theme.typography.body2.fontSize,
         fontWeight: theme.typography.body2.fontWeight,
       },
     },
@@ -119,6 +74,43 @@ const colors = [
 ];
 
 export default function ChartUserByCountry() {
+  const [data, setData] = React.useState([]);
+  const [countries, setCountries] = React.useState([
+    { name: 'India', value: 50, flag: <IndiaFlag />, color: 'hsl(220, 25%, 65%)' },
+    { name: 'USA', value: 35, flag: <UsaFlag />, color: 'hsl(220, 25%, 45%)' },
+    { name: 'Brazil', value: 10, flag: <BrazilFlag />, color: 'hsl(220, 25%, 30%)' },
+    { name: 'Other', value: 5, flag: <GlobeFlag />, color: 'hsl(220, 25%, 20%)' },
+  ]);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/assessment/');
+        const chartData = response.data.map(item => ({
+          label: item.district,
+          value: item.totals.totalChildrenAssessed,
+        }));
+
+        // Optionally update Pie chart values dynamically
+        setData(chartData);
+
+        // Optionally update progress bars if you want to calculate %
+        const total = chartData.reduce((acc, curr) => acc + curr.value, 0);
+        const updatedCountries = chartData.map((item, index) => ({
+          name: item.label,
+          value: ((item.value / total) * 100).toFixed(1),
+          flag: countries[index]?.flag || <GlobeFlag />,
+          color: colors[index % colors.length],
+        }));
+        setCountries(updatedCountries);
+      } catch (error) {
+        console.error('Error fetching user data by country:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   return (
     <Card
       variant="outlined"
@@ -150,7 +142,10 @@ export default function ChartUserByCountry() {
             width={260}
             hideLegend
           >
-            <PieCenterLabel primaryText="98.5K" secondaryText="Total" />
+            <PieCenterLabel
+              primaryText={data.reduce((sum, item) => sum + item.value, 0)}
+              secondaryText="Total"
+            />
           </PieChart>
         </Box>
         {countries.map((country, index) => (

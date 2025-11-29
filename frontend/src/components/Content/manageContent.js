@@ -29,13 +29,15 @@ export default function ManageContentComp() {
   // Delete confirmation modal
   const [openDelete, setOpenDelete] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const user = localStorage.getItem('role');
+  const isAdmin = user && user.toLowerCase() === 'admin';
 
   useEffect(() => {
     getData();
   }, []);
 
   const getData = async () => {
-    const response = await fetch("https://monitoring-analysis-z6gl.vercel.app/api/assessment/");
+    const response = await fetch("http://localhost:8000/api/assessment/");
     if (response.ok) {
       const json = await response.json();
       setData(json);
@@ -48,7 +50,7 @@ export default function ManageContentComp() {
   };
 
   const handleEditSave = async () => {
-    await fetch(`https://monitoring-analysis-z6gl.vercel.app/api/assessment/${editItem._id}`, {
+    await fetch(`http://localhost:8000/api/assessment/${editItem._id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(editItem),
@@ -59,13 +61,28 @@ export default function ManageContentComp() {
   };
 
   const handleDeleteConfirm = async () => {
-    await fetch(`https://monitoring-analysis-z6gl.vercel.app/api/assessment/${deleteId}`, {
+  try {
+    const response = await fetch(`http://localhost:8000/api/assessment/${deleteId}`, {
       method: "DELETE",
     });
 
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("Delete failed:", data.error || data.message);
+      alert("❌ Failed to delete assessment");
+      return;
+    }
+
+    alert("🗑️ Assessment deleted successfully!");
     setOpenDelete(false);
-    getData();
-  };
+    getData(); // refresh list
+  } catch (err) {
+    console.error("Error deleting assessment:", err);
+    alert("❌ Something went wrong!");
+  }
+};
+
 
   const filtered = data.filter((row) => {
     const q = search.toLowerCase();
@@ -79,35 +96,107 @@ export default function ManageContentComp() {
   //        PDF GENERATION — EXACT STYLING LIKE IMAGE
   // ---------------------------------------------------------
 const generatePDF = () => {
-  const doc = new jsPDF("p", "mm", "a4");
+const doc = new jsPDF("p", "mm", "a4");
 
-  doc.setFontSize(14);
-  doc.text("Monthly Assessment Report", 14, 14);
+doc.setFontSize(14);
+doc.text("Monthly Assessment Report", 14, 14);
 
-  const tableData = filtered.map((row, i) => [
-    i + 1,
-    row.district,
-    row.monthName,
-    row.data.age_06_to_23_months.male.samWithComplication,
-    row.data.age_06_to_23_months.male.samWithoutComplication,
-    row.data.age_06_to_23_months.female.samWithComplication,
-    row.data.age_06_to_23_months.female.samWithoutComplication,
-    row.totals.totalChildrenAssessed,
-  ]);
+const tableData = [];
 
-  autoTable(doc, {
-    startY: 20,
-    head: [[
-      "ID", "District", "Month",
-      "SamW(C)-M", "SamWO(C)-M",
-      "SamW(C)-F", "SamWO(C)-F",
-      "Total"
-    ]],
-    body: tableData
-  });
+filtered.forEach((row, i) => {
+const age23 = row.data.age_06_to_23_months;
+const age59 = row.data.age_24_to_59_months;
+// helper placeholder cell
+// const empty = { content: "", styles: { cellWidth: 0 } };
 
-  doc.save("Assessment_Report.pdf");
+// ROW 1: 06–23 Male
+const row1Values = [
+  age23.male.samWithComplication,
+  age23.male.samWithoutComplication,
+  age23.male.mam,
+  age23.male.normal
+];
+const row1Total = row1Values.reduce((a,b) => Number(a)+Number(b), 0);
+tableData.push([
+  { content: i + 1, rowSpan: 4, styles: { valign: 'middle' } },
+  { content: row.district, rowSpan: 4, styles: { valign: 'middle' } },
+  { content: row.monthName, rowSpan: 4, styles: { valign: 'middle' } },
+  "06–23 months",
+  "Male",
+  ...row1Values,
+  row1Total
+]);
+
+// ROW 2: 06–23 Female
+const row2Values = [
+  age23.female.samWithComplication,
+  age23.female.samWithoutComplication,
+  age23.female.mam,
+  age23.female.normal
+];
+const row2Total = row2Values.reduce((a,b) => Number(a)+Number(b), 0);
+tableData.push([
+  "06–23 months",
+  "Female",
+  ...row2Values,
+  row2Total
+]);
+
+// ROW 3: 24–59 Male
+const row3Values = [
+  age59.male.samWithComplication,
+  age59.male.samWithoutComplication,
+  age59.male.mam,
+  age59.male.normal
+];
+const row3Total = row3Values.reduce((a,b) => Number(a)+Number(b), 0);
+tableData.push([
+  "24–59 months",
+  "Male",
+  ...row3Values,
+  row3Total
+]);
+
+// ROW 4: 24–59 Female
+const row4Values = [
+  age59.female.samWithComplication,
+  age59.female.samWithoutComplication,
+  age59.female.mam,
+  age59.female.normal
+];
+const row4Total = row4Values.reduce((a,b) => Number(a)+Number(b), 0);
+tableData.push([
+  "24–59 months",
+  "Female",
+  ...row4Values,
+  row4Total
+]);
+
+// ROW 5: TOTAL per column (sum vertically)
+
+});
+
+autoTable(doc, {
+startY: 20,
+head: [[
+"ID", "District", "Month",
+"Age Group", "Gender",
+"SAM w/ Comp", "SAM w/o Comp",
+"MAM", "Normal", "Total"
+]],
+body: tableData,
+theme: "grid",
+styles: { fontSize: 9, valign: 'middle' },
+headStyles: { fillColor: [60, 60, 60], textColor: 255 },
+});
+
+doc.save("Assessment_Report.pdf");
 };
+
+
+
+
+
   // ---------------------------------------------------------
 
   return (
@@ -209,7 +298,9 @@ const generatePDF = () => {
 
       {/* EDIT MODAL */}
      <Modal open={openEdit} onClose={() => setOpenEdit(false)}>
-  <Box
+{
+  isAdmin ? (
+      <Box
     sx={{
       width: 500,
       p: 3,
@@ -372,12 +463,19 @@ const generatePDF = () => {
       </>
     )}
   </Box>
+  ) : (
+    <Box sx={{ width: 300, p: 3, background: "#fff", mt: "20%", mx: "auto", borderRadius: 2 }}>
+      <Typography>You do not have permission to edit records.</Typography>
+    </Box>
+  )
+}
 </Modal>
 
 
       {/* DELETE CONFIRM MODAL */}
       <Modal open={openDelete} onClose={() => setOpenDelete(false)}>
-        <Box sx={{ width: 300, p: 3, background: "#fff", mt: "20%", mx: "auto", borderRadius: 2 }}>
+        {isAdmin ? (
+          <Box sx={{ width: 300, p: 3, background: "#fff", mt: "20%", mx: "auto", borderRadius: 2 }}>
           <Typography>Are you sure you want to delete?</Typography>
 
           <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
@@ -390,6 +488,13 @@ const generatePDF = () => {
             </Button>
           </Stack>
         </Box>
+        ): (
+          <Box sx={{ width: 300, p: 3, background: "#fff", mt: "20%", mx: "auto", borderRadius: 2 }}>
+      <Typography>You do not have permission to delete records.</Typography>
+    </Box>
+        )
+      }
+
       </Modal>
     </Stack>
   );

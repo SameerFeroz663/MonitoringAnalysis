@@ -1,38 +1,94 @@
-import { alpha } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { CssBaseline } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import AppNavbar from './components/AppNavbar';
-import Header from './components/Header';
-import MainGrid from './components/MainGrid';
-import ManageContent from './pages/Content/manageContent';
 import SideMenu from './components/SideMenu';
-import AppTheme from './shared-theme/AppTheme';
-import {
-  chartsCustomizations,
-  dataGridCustomizations,
-  datePickersCustomizations,
-  treeViewCustomizations,
-} from './theme/customizations';
 
-// Pages for routing
+// Pages
 import HomePage from './pages/Home/HomePage';
 import Content from './pages/Content/content';
+import ManageContent from './pages/Content/manageContent';
+import LoginPage from './pages/Auth/Login';
+import SignupPage from './pages/Auth/createuser';
+import { useEffect } from 'react';
+// Auth helper
 
 export default function App() {
+  const isAuthenticated = () => {
+  return !!localStorage.getItem("token"); // simple JWT check
+};
+
+// Protected route component
+const PrivateRoute = ({ children }) => {
+  return isAuthenticated() ? children : <Navigate to="/login" replace />;
+};
+
+  const isAdmin = ()=>{
+  const user = localStorage.getItem('role');
+  if (user.toLowerCase() === 'admin'){
+
+    return true;
+    
+  }
+  return false;
+}
+const AdminRoute = ({ children }) => {
+  if (!isAuthenticated()) {
+    // Not logged in
+    return <Navigate to="/login" replace />;
+  }
+  if (!isAdmin()) {
+    // Logged in but not admin
+    return <Navigate to="/" replace />; // or a "Not Authorized" page
+  }
+  return children;
+};
   return (
     <Router>
-        <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/upload-content" element={<Content />} />
-                <Route path="/manage-content" element={<ManageContent />} />
-                
-                {/* <Route path="/settings" element={<SettingsPage />} />
-                <Route path="/about" element={<AboutPage />} /> */}
-                {/* <Route path="/feedback" element={<FeedbackPage />} /> */}
+      <CssBaseline />
+      
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+
+        <Route 
+          path="/" 
+          element={
+            <PrivateRoute>
+                <HomePage />
+            </PrivateRoute>
+          } 
+        />
+        
+        <Route 
+          path="/upload-content" 
+          element={
+            <AdminRoute>
+                <Content />
+            </AdminRoute>
+          } 
+        />
+         <Route 
+          path="/create-user" 
+          element={
+            <AdminRoute>
+                <SignupPage />
+            </AdminRoute>
+          } 
+        />
+        <Route 
+          path="/manage-content" 
+          element={
+            <PrivateRoute>
+                <ManageContent />
+            </PrivateRoute>
+          } 
+        />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </Router> 
+    </Router>
   );
 }
+
+// Optional layout wrapper to include navbar/sidebar
+

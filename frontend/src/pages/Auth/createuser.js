@@ -2,13 +2,12 @@ import { alpha } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import AppNavbar from '../../components/AppNavbar';
 import Header from '../../components/Header';
-import Typography from '@mui/material/Typography';
-import MainGrid from '../../components/MainGrid';
-import ManageContentComp from '../../components/Content/manageContent';
+import Signup from '../../components/Auth/signup';
 import SideMenu from '../../components/SideMenu';
 import AppTheme from '../../shared-theme/AppTheme';
+import AppNavbar from '../../components/AppNavbar';
+// import Logo from '';
 import {
   chartsCustomizations,
   dataGridCustomizations,
@@ -22,11 +21,9 @@ const xThemeComponents = {
   ...datePickersCustomizations,
   ...treeViewCustomizations,
 };
-
-export default function ManageContent(props) {
- 
-  return (
-    <AppTheme {...props} themeComponents={xThemeComponents}>
+export default function SignupPage(props)  {
+    return (
+        <AppTheme {...props} themeComponents={xThemeComponents}>
       <CssBaseline enableColorScheme />
       <Box sx={{ display: 'flex' }}>
         <SideMenu />
@@ -52,11 +49,10 @@ export default function ManageContent(props) {
             }}
           >
             <Header />
-            {/* <MainGrid /> */}
-           <ManageContentComp />
+            <Signup />
           </Stack>
         </Box>
       </Box>
     </AppTheme>
-  );
-} 
+    );
+}

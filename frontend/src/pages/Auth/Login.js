@@ -2,13 +2,12 @@ import { alpha } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import AppNavbar from '../../components/AppNavbar';
+// import AppNavbar from '../../components/AppNavbar';
 import Header from '../../components/Header';
-import Typography from '@mui/material/Typography';
-import MainGrid from '../../components/MainGrid';
-import ManageContentComp from '../../components/Content/manageContent';
-import SideMenu from '../../components/SideMenu';
+import Login from '../../components/Auth/login';
+// import SideMenu from '../../components/SideMenu';
 import AppTheme from '../../shared-theme/AppTheme';
+// import Logo from '';
 import {
   chartsCustomizations,
   dataGridCustomizations,
@@ -22,15 +21,22 @@ const xThemeComponents = {
   ...datePickersCustomizations,
   ...treeViewCustomizations,
 };
-
-export default function ManageContent(props) {
- 
-  return (
-    <AppTheme {...props} themeComponents={xThemeComponents}>
+export default function LoginPage(props)  {
+    return (
+        <AppTheme {...props} themeComponents={xThemeComponents}>
       <CssBaseline enableColorScheme />
       <Box sx={{ display: 'flex' }}>
-        <SideMenu />
-        <AppNavbar />
+        <Box
+        position="absolute"
+        top={16}
+        left={16}
+        component="img"
+        src={'/logo.png'}
+        alt="Logo"
+        sx={{ height: 70, width: '70' }}
+      />
+        {/* <SideMenu /> */}
+        {/* <AppNavbar /> */}
         {/* Main content */}
         <Box
           component="main"
@@ -51,12 +57,11 @@ export default function ManageContent(props) {
               mt: { xs: 8, md: 0 },
             }}
           >
-            <Header />
-            {/* <MainGrid /> */}
-           <ManageContentComp />
+            {/* <Header /> */}
+            <Login />
           </Stack>
         </Box>
       </Box>
     </AppTheme>
-  );
-} 
+    );
+}
