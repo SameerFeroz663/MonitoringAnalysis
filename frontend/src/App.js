@@ -15,6 +15,7 @@ import { useEffect } from 'react';
 
 export default function App() {
   const isAuthenticated = () => {
+  
   return !!localStorage.getItem("token"); // simple JWT check
 };
 
@@ -60,7 +61,7 @@ const AdminRoute = ({ children }) => {
         />
         
         <Route 
-          path="/upload-content" 
+          path="/upload-content/:dept" 
           element={
             <AdminRoute>
                 <Content />
@@ -76,7 +77,7 @@ const AdminRoute = ({ children }) => {
           } 
         />
         <Route 
-          path="/manage-content" 
+          path="/manage-content/:dept" 
           element={
             <PrivateRoute>
                 <ManageContent />
