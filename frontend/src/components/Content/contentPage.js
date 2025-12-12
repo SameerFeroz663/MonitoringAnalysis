@@ -273,7 +273,7 @@ const submitLivestock = async () => {
       {dept === "Agriculture" && (
         <Box sx={{ p: 4 }}>
           <Typography variant="h6" sx={{ mb: 2 }}>
-            Livestock / Agriculture Assessment
+            Agriculture Assessment
           </Typography>
 
           <Paper sx={{ overflowX: "auto" }}>
@@ -335,7 +335,7 @@ const submitLivestock = async () => {
         </Box>
       )}
       {/* ---------------- LIVESTOCK FORM ---------------- */}
-{dept === "Livestock" && (
+      {decodeURIComponent(dept) === "Livestock & Fisheries" && (
   <Box sx={{ p: 4 }}>
     <Typography variant="h6" sx={{ mb: 2 }}>
       Livestock Assessment
@@ -447,7 +447,7 @@ const submitLivestock = async () => {
       Submit
     </Button>
   </Box>
-)}
+      )}
 
 
       {/* ---------------- NUTRITION FORM ---------------- */}
